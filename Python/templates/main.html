@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SGEC - Sistema de Gestión de Espacios</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+  <header>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <img 
+        src="{{ url_for('static', filename='logo_elbosque.png') }}" 
+        style="height:40px; width:auto;"
+        alt="Universidad El Bosque"
+      >
+      <h1 style="margin:0">Gestión de Espacios Colaborativos</h1>
+    </div>
+
+    <div class="user-info">
+      <div class="user-name" data-user-rol="{{ user_rol }}">
+        Bienvenido, <strong>{{ user_name }}</strong>
+        <div style="font-size:11px;margin-top:2px">{{ user_rol }}</div>
+      </div>
+      <a href="/logout" class="btn btn-small btn-secondary">Salir</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- COLUMNA IZQUIERDA -->
+    <aside class="left card">
+      <div class="flex-between mb-2">
+        <strong>Espacios Disponibles</strong>
+        {% if user_rol == 'Administrador' %}
+        <button class="btn btn-small" onclick="openModalNuevoEspacio()">+ Nuevo</button>
+        {% endif %}
+      </div>
+
+      
+      <div class="modal" id="modalReservasGlobal">
+        <div class="box" style="max-height:80vh; overflow-y:auto">
+          <h3>Todas las reservas</h3>
+
+          <div id="listaReservasGlobal" style="margin-top:10px"></div>
+
+          <button class="btn btn-secondary" style="margin-top:15px" onclick="closeGlobalReservasModal()">
+            Cerrar
+          </button>
+        </div>
+      </div>
+
+      <div class="filter">
+        <input class="search" id="searchEspacio" placeholder="Buscar espacio..." />
+      </div>
+      
+      <div class="room-list" id="roomList">
+        <!-- Se llenará dinámicamente -->
+      </div>
+
+      <div style="margin-top:14px;font-size:13px;color:var(--muted)">
+        {% if user_rol == 'Estudiante' %}
+          <strong>Tip:</strong> Selecciona un bloque del mapa o usa el buscador para ver la disponibilidad de los espacios.
+        {% elif user_rol == 'Docente' %}
+          <strong>Tip:</strong> Haz clic en un espacio del mapa o de la lista para crear una reserva.
+        {% else %}
+          <strong>Tip:</strong> Como administrador puedes reservar espacios y asignar mantenimientos desde el mapa o la lista.
+        {% endif %}
+      </div>
+    </aside>
+
+    <!-- COLUMNA CENTRAL -->
+    <section class="stage">
+      <!-- MAPA DINÁMICO -->
+      <div class="card floorplan">
+        <div id="mapaSvg" style="width:100%;height:100%">
+          <!-- Mapa con js -->
+        </div>
+
+        <div class="legend">
+          <div class="item">
+            <div class="dot" style="background:#0b3c2f"></div> Disponible
+          </div>
+          <div class="item">
+            <div class="dot" style="background:#5b2121"></div> Ocupado
+          </div>
+          <div class="item">
+            <div class="dot" style="background:#5b4621"></div> Mantenimiento
+          </div>
+        </div>
+      </div>
+
+      <!-- CALENDARIO -->
+      <div class="card">
+        <strong>Calendario Semanal</strong>
+        <div style="margin-top:8px;color:var(--muted);font-size:13px">
+          {% if user_rol == 'Estudiante' %}
+            Navega por los días para consultar disponibilidad.
+          {% else %}
+            Haz clic en un día para crear una reserva.
+          {% endif %}
+        </div>
+        <div class="calendar" id="calendar">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUMNA DERECHA -->
+    <aside class="right card">
+      <div class="stats">
+        <div class="stat">
+          <div>
+            <div class="stat-label">Espacios Totales</div>
+            <div class="stat-value" id="statEspacios">0</div>
+          </div>
+          <div class="stat-badge">Total</div>
+        </div>
+
+        <div class="stat">
+          <div>
+            <div class="stat-label">Disponibles</div>
+            <div class="stat-value" id="statDisponibles">0</div>
+          </div>
+          <div class="stat-badge">Libres</div>
+        </div>
+
+        <div class="stat">
+          <div>
+            <div class="stat-label">Reservas Hoy</div>
+            <div class="stat-value" id="statHoy">0</div>
+          </div>
+          <div class="stat-badge">Activas</div>
+        </div>
+
+        <div class="stat">
+          <div>
+            <div class="stat-label">Mis Reservas</div>
+            <div class="stat-value" id="statMias">0</div>
+          </div>
+          <div class="stat-badge">Futuras</div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px">
+        <div class="flex-between mb-2">
+          <strong>Próximas Reservas</strong>
+          {% if user_rol in ['Docente', 'Administrador'] %}
+          <button class="btn btn-small" onclick="openModalNuevoEspacio()">+ Nueva</button>
+          {% endif %}
+        </div>
+        <div id="upcomingList">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+
+
+       {% if user_rol == 'Administrador' %}
+      <div style="margin-top:18px">
+        <button class="btn" style="width:100%" onclick="exportarReporte()">
+           Exportar Reporte
+        </button>
+      </div>
+      {% endif %}
+
+      {% if user_rol == 'Administrador' %}
+      <div style="margin-top:12px">
+        <a href="/api/historial" target="_blank" class="btn btn-secondary" style="width:100%;display:block;text-align:center">
+           Ver Historial
+        </a>
+      </div>
+      {% endif %}
+      {% if user_rol == 'Administrador' %}
+      <div style="margin-top:12px">
+        <button class="btn btn-secondary" style="width:100%" onclick="openGlobalReservasModal()">
+           Ver todas las reservas
+        </button>
+      </div>
+      {% endif %}
+
+    </aside>
+  </main>
+
+  <!-- MODAL NUEVA RESERVA -->
+  <div class="modal" id="modalReserva">
+    <div class="box">
+      <h3 id="modalTitle">Nueva Reserva</h3>
+      
+      <form id="formReserva">
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Espacio *</label>
+            <select id="fEspacio" required>
+              <option value="">Selecciona un espacio...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Fecha *</label>
+            <input id="fFecha" type="date" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Hora Inicio *</label>
+            <input id="fHoraInicio" type="time" required />
+          </div>
+          <div style="flex:1">
+            <label>Hora Fin *</label>
+            <input id="fHoraFin" type="time" required />
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button type="submit" class="btn" style="flex:1">Reservar</button>
+          <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeModal()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE MANTENIMIENTO -->
+  <div class="modal" id="modalMantenimiento">
+    <div class="box">
+      <h3>Asignar mantenimiento</h3>
+      <form id="formMantenimiento">
+        <input type="hidden" id="mEspacioId">
+        <button id="btnEliminarMant" class="btn btn-danger" onclick="deleteMaintenance()">Eliminar mantenimiento</button>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Fecha inicio *</label>
+            <input id="mFechaInicio" type="date" required />
+          </div>
+          <div style="flex:1">
+            <label>Fecha fin *</label>
+            <input id="mFechaFin" type="date" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Descripción *</label>
+            <textarea id="mDescripcion" required></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button type="submit" class="btn" style="flex:1">Guardar</button>
+          <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeMaintenanceModal()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>Universidad El Bosque - SGEC 2025</footer>
+
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>

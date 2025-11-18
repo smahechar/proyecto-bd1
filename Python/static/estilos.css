@@ -1,0 +1,869 @@
+/* ============================================
+   VARIABLES Y RESET
+   ============================================ */
+:root {
+  --bg: #071023;
+  --card: #0f1b2b;
+  --accent: #00d1b2;
+  --accent-hover: #00a792;
+  --muted: #9fb3c8;
+  --danger: #ff4757;
+  --success: #0b3c2f;
+  --warning: #ffa502;
+  --text: #e6f2ff;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Inter, system-ui, -apple-system, Arial, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(180deg, #071023 0%, #04202f 100%);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ============================================
+   HEADER / NAVEGACIÓN
+   ============================================ */
+.header, header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(6px);
+  background: rgba(7, 16, 35, 0.8);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin: 0;
+  color: var(--accent);
+}
+
+.header .user-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.header .user-name {
+  text-align: right;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.header .user-name strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ============================================
+   LAYOUT PRINCIPAL
+   ============================================ */
+.container {
+  display: grid;
+  grid-template-columns: 320px 1fr 360px;
+  gap: 18px;
+  padding: 20px;
+  height: calc(100vh - 64px);
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  overflow: auto;
+}
+
+/* ============================================
+   COLUMNA IZQUIERDA - LISTA DE ESPACIOS
+   ============================================ */
+.left .filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.search {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.search::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.room-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+.room {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.00));
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+}
+
+.room:hover {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+
+.room .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.room .dot.disponible {
+  background: var(--success);
+  color: var(--success);
+}
+
+.room .dot.reservado, .room .dot.ocupado {
+  background: var(--danger);
+  color: var(--danger);
+}
+
+.room .dot.mantenimiento {
+  background: var(--warning);
+  color: var(--warning);
+}
+
+.room .meta {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.room strong {
+  font-size: 14px;
+  color: var(--text);
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* ============================================
+   COLUMNA CENTRAL - MAPA Y CALENDARIO
+   ============================================ */
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.floorplan {
+  height: 420px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(180deg, #06303a, #07212a);
+}
+
+.floor-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.space {
+  fill: #072b34;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.space:hover {
+  fill: #0a3d47;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 4px 12px rgba(0, 209, 178, 0.3));
+}
+
+.space.busy, .space.ocupado, .space.reservado {
+  fill: #5b2121;
+  stroke: var(--danger);
+  opacity: 0.95;
+}
+
+.space.free, .space.disponible {
+  fill: var(--success);
+  stroke: var(--accent);
+}
+
+.space.mantenimiento {
+  fill: #5b4621;
+  stroke: var(--warning);
+  opacity: 0.9;
+}
+
+.legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.legend .item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.legend .item .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ============================================
+   CALENDARIO SEMANAL
+   ============================================ */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.day {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  border-radius: 8px;
+  min-height: 80px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.day:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--accent);
+}
+
+.day .date {
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.booking {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  background: linear-gradient(90deg, rgba(0, 209, 178, 0.15), rgba(0, 176, 255, 0.08));
+  color: var(--text);
+  border-left: 2px solid var(--accent);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.booking:hover {
+  background: linear-gradient(90deg, rgba(0, 209, 178, 0.25), rgba(0, 176, 255, 0.15));
+  transform: translateX(2px);
+}
+
+.booking.cancelada {
+  opacity: 0.5;
+  text-decoration: line-through;
+  background: linear-gradient(90deg, rgba(255, 71, 87, 0.15), rgba(255, 71, 87, 0.08));
+  border-left-color: var(--danger);
+}
+
+/* ============================================
+   COLUMNA DERECHA - ESTADÍSTICAS
+   ============================================ */
+.right .stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+}
+
+.stat:hover {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border-color: var(--accent);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-badge {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+/* ============================================
+   BOTONES
+   ============================================ */
+.btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(90deg, var(--accent), #00a7ff);
+  color: #042;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn:hover {
+  background: linear-gradient(90deg, var(--accent-hover), #0095e6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 209, 178, 0.3);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.btn-danger {
+  background: linear-gradient(90deg, var(--danger), #e84118);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(90deg, #ff6b7a, #e84118);
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal .box {
+  width: 520px;
+  max-width: 90vw;
+  background: var(--card);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal .box h3,
+.modal .box strong {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.form-row > div {
+  flex: 1;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* ============================================
+   LOGIN BOX
+   ============================================ */
+.login-box {
+  max-width: 420px;
+  margin: 80px auto;
+  background: var(--card);
+  padding: 32px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.login-box h2 {
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  text-align: center;
+  color: var(--accent);
+}
+
+.login-box input,
+.login-box select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  font-size: 14px;
+}
+
+.login-box input:focus,
+.login-box select:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), #00a7ff);
+  color: #042;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-box button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 209, 178, 0.4);
+}
+
+.login-box #msg {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.login-box a {
+  display: block;
+  margin-top: 16px;
+  text-align: center;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.login-box a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================
+   HISTORIAL Y LISTAS
+   ============================================ */
+#upcoming {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.upcoming-item {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.00));
+  border-left: 2px solid var(--accent);
+  transition: all 0.2s ease;
+}
+
+.upcoming-item:hover {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  transform: translateX(4px);
+}
+
+.upcoming-item strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.upcoming-item .meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ============================================
+   BADGES Y ESTADOS
+   ============================================ */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge.activa {
+  background: rgba(11, 60, 47, 0.3);
+  color: #0ea792;
+  border: 1px solid rgba(14, 167, 146, 0.3);
+}
+
+.badge.cancelada {
+  background: rgba(255, 71, 87, 0.2);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.badge.programado {
+  background: rgba(255, 165, 2, 0.2);
+  color: #ffa502;
+  border: 1px solid rgba(255, 165, 2, 0.3);
+}
+
+.badge.completado {
+  background: rgba(11, 60, 47, 0.3);
+  color: #0ea792;
+  border: 1px solid rgba(14, 167, 146, 0.3);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+footer {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  color: var(--muted);
+  font-size: 12px;
+  z-index: 50;
+}
+
+/* ============================================
+   SCROLLBARS PERSONALIZADOS
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1100px) {
+  .container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .floorplan {
+    height: 320px;
+  }
+
+  .calendar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .left,
+  .right {
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 16px;
+  }
+
+  .container {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .calendar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modal .box {
+    width: 95vw;
+    padding: 20px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+
+.hidden {
+  display: none;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gap-1 { gap: 8px; }
+.gap-2 { gap: 16px; }
+.gap-3 { gap: 24px; }
+
+/* ============================================
+   MAPA DE BLOQUES (SVG)
+   ============================================ */
+/* ============================================
+   MAPA DE BLOQUES (SVG)
+   ============================================ */
+.campus-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+svg .bloque-shape {
+  fill: rgba(7, 43, 52, 0.95);
+  stroke: var(--accent);
+  stroke-width: 2;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+svg .bloque-shape:hover {
+  fill: rgba(10, 90, 110, 0.95);
+  filter: drop-shadow(0 0 12px rgba(0, 209, 178, 0.35));
+}
+
+svg .bloque-group.selected .bloque-shape {
+  fill: rgba(11, 60, 47, 0.95);
+  stroke-width: 3;
+  stroke: #00f0ff;
+}
+
+svg text.bloque-label {
+  fill: #e6f2ff;
+  font-size: 20px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.room-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.btn-maint {
+    width: 100%;
+    margin-top: 5px;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-maint:hover {
+    background-color: #e68a00;
+}
+
+
+
+.logo-img {
+    width: 40px !important;
+    height: auto !important;
+    border: 3px solid red !important;
+}
+
+.btn-eliminar-reserva {
+  background: #ff3b47;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.btn-eliminar-reserva:hover {
+  background: #d32f38;
+}
+
